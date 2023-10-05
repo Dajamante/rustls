@@ -1,6 +1,8 @@
 use crate::builder::ConfigBuilder;
 use crate::common_state::{CommonState, Protocol, Side};
-use crate::conn::{ConnectionCommon, ConnectionCore, UnbufferedConnectionCommon};
+#[cfg(feature = "std")]
+use crate::conn::ConnectionCommon;
+use crate::conn::{ConnectionCore, UnbufferedConnectionCommon};
 use crate::crypto::{CryptoProvider, SupportedKxGroup};
 use crate::enums::{CipherSuite, ProtocolVersion, SignatureScheme};
 use crate::error::Error;
@@ -10,7 +12,9 @@ use crate::msgs::enums::NamedGroup;
 use crate::msgs::handshake::ClientExtension;
 use crate::msgs::persist;
 use crate::sign;
-use crate::suites::{ExtractedSecrets, SupportedCipherSuite};
+#[cfg(feature = "std")]
+use crate::suites::ExtractedSecrets;
+use crate::suites::SupportedCipherSuite;
 use crate::unbuffered::{EncryptError, MustTransmitTlsData};
 use crate::versions;
 use crate::KeyLog;
@@ -32,6 +36,7 @@ use core::marker::PhantomData;
 use core::mem;
 use core::ops::{Deref, DerefMut};
 use std::error::Error as StdError;
+#[cfg(feature = "std")]
 use std::io;
 
 #[cfg(doc)]
@@ -495,6 +500,7 @@ impl EarlyData {
         }
     }
 
+    #[cfg(feature = "std")]
     fn check_write(&mut self, sz: usize) -> io::Result<usize> {
         self.check_write_opt(sz)
             .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidInput))
@@ -517,16 +523,19 @@ impl EarlyData {
         }
     }
 
+    #[cfg(feature = "std")]
     fn bytes_left(&self) -> usize {
         self.left
     }
 }
 
 /// Stub that implements io::Write and dispatches to `write_early_data`.
+#[cfg(feature = "std")]
 pub struct WriteEarlyData<'a> {
     sess: &'a mut ClientConnection,
 }
 
+#[cfg(feature = "std")]
 impl<'a> WriteEarlyData<'a> {
     fn new(sess: &'a mut ClientConnection) -> WriteEarlyData<'a> {
         WriteEarlyData { sess }
@@ -544,6 +553,7 @@ impl<'a> WriteEarlyData<'a> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<'a> io::Write for WriteEarlyData<'a> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.sess.write_early_data(buf)
@@ -555,10 +565,12 @@ impl<'a> io::Write for WriteEarlyData<'a> {
 }
 
 /// This represents a single TLS client connection.
+#[cfg(feature = "std")]
 pub struct ClientConnection {
     inner: ConnectionCommon<ClientConnectionData>,
 }
 
+#[cfg(feature = "std")]
 impl fmt::Debug for ClientConnection {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("ClientConnection")
@@ -566,6 +578,7 @@ impl fmt::Debug for ClientConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl ClientConnection {
     /// Make a new ClientConnection.  `config` controls how
     /// we behave in the TLS protocol, `name` is the
@@ -636,6 +649,7 @@ impl ClientConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl Deref for ClientConnection {
     type Target = ConnectionCommon<ClientConnectionData>;
 
@@ -644,6 +658,7 @@ impl Deref for ClientConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl DerefMut for ClientConnection {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
