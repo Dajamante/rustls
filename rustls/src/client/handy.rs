@@ -1,6 +1,7 @@
 use crate::client;
 use crate::enums::SignatureScheme;
 use crate::error::Error;
+#[cfg(feature = "std")]
 use crate::limited_cache;
 use crate::msgs::handshake::CertificateChain;
 use crate::msgs::persist;
@@ -9,9 +10,12 @@ use crate::NamedGroup;
 
 use pki_types::ServerName;
 
+#[cfg(feature = "std")]
 use alloc::collections::VecDeque;
 use alloc::sync::Arc;
+#[cfg(feature = "std")]
 use core::fmt;
+#[cfg(feature = "std")]
 use std::sync::Mutex;
 
 /// An implementer of `ClientSessionStore` which does nothing.
@@ -40,8 +44,10 @@ impl client::ClientSessionStore for NoClientSessionStorage {
     }
 }
 
+#[cfg(feature = "std")]
 const MAX_TLS13_TICKETS_PER_SERVER: usize = 8;
 
+#[cfg(feature = "std")]
 struct ServerData {
     kx_hint: Option<NamedGroup>,
 
@@ -53,6 +59,7 @@ struct ServerData {
     tls13: VecDeque<persist::Tls13ClientSessionValue>,
 }
 
+#[cfg(feature = "std")]
 impl Default for ServerData {
     fn default() -> Self {
         Self {
@@ -68,10 +75,12 @@ impl Default for ServerData {
 /// in memory.
 ///
 /// It enforces a limit on the number of entries to bound memory usage.
+#[cfg(feature = "std")]
 pub struct ClientSessionMemoryCache {
     servers: Mutex<limited_cache::LimitedCache<ServerName<'static>, ServerData>>,
 }
 
+#[cfg(feature = "std")]
 impl ClientSessionMemoryCache {
     /// Make a new ClientSessionMemoryCache.  `size` is the
     /// maximum number of stored sessions.
@@ -84,6 +93,7 @@ impl ClientSessionMemoryCache {
     }
 }
 
+#[cfg(feature = "std")]
 impl client::ClientSessionStore for ClientSessionMemoryCache {
     fn set_kx_hint(&self, server_name: ServerName<'static>, group: NamedGroup) {
         self.servers
@@ -164,6 +174,7 @@ impl client::ClientSessionStore for ClientSessionMemoryCache {
     }
 }
 
+#[cfg(feature = "std")]
 impl fmt::Debug for ClientSessionMemoryCache {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Note: we omit self.servers as it may contain sensitive data.

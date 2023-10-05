@@ -32,6 +32,7 @@ where
         }
     }
 
+    #[cfg(feature = "std")]
     pub(crate) fn get_or_insert_default_and_edit(&mut self, k: K, edit: impl FnOnce(&mut V)) {
         let inserted_new_item = match self.map.entry(k) {
             Entry::Occupied(value) => {
@@ -86,6 +87,7 @@ where
         self.map.get(k)
     }
 
+    #[cfg(feature = "std")]
     pub(crate) fn get_mut<Q: ?Sized>(&mut self, k: &Q) -> Option<&mut V>
     where
         K: Borrow<Q>,
@@ -205,6 +207,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_get_or_insert_default_and_edit_evicts_old_items_to_meet_capacity() {
         let mut t = Test::new(3);
@@ -233,6 +236,7 @@ mod tests {
         assert_eq!(t.get("jkl"), None);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_get_or_insert_default_and_edit_edits_existing_item() {
         let mut t = Test::new(3);
