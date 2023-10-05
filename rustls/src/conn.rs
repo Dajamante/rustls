@@ -18,6 +18,7 @@ use std::io;
 pub(crate) mod unbuffered;
 
 /// A client or server connection.
+#[cfg(feature = "std")]
 #[derive(Debug)]
 pub enum Connection {
     /// A client connection
@@ -26,6 +27,7 @@ pub enum Connection {
     Server(crate::server::ServerConnection),
 }
 
+#[cfg(feature = "std")]
 impl Connection {
     /// Read TLS content from `rd`.
     ///
@@ -109,6 +111,7 @@ impl Connection {
     }
 }
 
+#[cfg(feature = "std")]
 impl Deref for Connection {
     type Target = CommonState;
 
@@ -120,6 +123,7 @@ impl Deref for Connection {
     }
 }
 
+#[cfg(feature = "std")]
 impl DerefMut for Connection {
     fn deref_mut(&mut self) -> &mut Self::Target {
         match self {
