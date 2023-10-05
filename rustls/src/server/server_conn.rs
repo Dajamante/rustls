@@ -1,5 +1,7 @@
 use crate::builder::ConfigBuilder;
-use crate::common_state::{CommonState, Context, Protocol, Side, State};
+#[cfg(feature = "std")]
+use crate::common_state::Context;
+use crate::common_state::{CommonState, Protocol, Side, State};
 use crate::conn::{ConnectionCommon, ConnectionCore, UnbufferedConnectionCommon};
 use crate::crypto::CryptoProvider;
 use crate::enums::{CipherSuite, ProtocolVersion, SignatureScheme};
@@ -31,6 +33,7 @@ use core::fmt;
 use core::fmt::{Debug, Formatter};
 use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut};
+#[cfg(feature = "std")]
 use std::io;
 
 #[cfg(doc)]
@@ -679,10 +682,12 @@ impl UnbufferedConnectionCommon<ServerConnectionData> {
 /// # }
 /// # }
 /// ```
+#[cfg(feature = "std")]
 pub struct Acceptor {
     inner: Option<ConnectionCommon<ServerConnectionData>>,
 }
 
+#[cfg(feature = "std")]
 impl Default for Acceptor {
     /// Return an empty Acceptor, ready to receive bytes from a new client connection.
     fn default() -> Self {
@@ -699,6 +704,7 @@ impl Default for Acceptor {
     }
 }
 
+#[cfg(feature = "std")]
 impl Acceptor {
     /// Read TLS content from `rd`.
     ///
