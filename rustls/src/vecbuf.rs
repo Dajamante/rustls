@@ -67,6 +67,7 @@ impl ChunkVecBuffer {
 
     /// Append a copy of `bytes`, perhaps a prefix if
     /// we're near the limit.
+    #[cfg(feature = "std")]
     pub(crate) fn append_limited_copy(&mut self, bytes: &[u8]) -> usize {
         let take = self.apply_limit(bytes.len());
         self.append(bytes[..take].to_vec());

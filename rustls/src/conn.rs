@@ -243,12 +243,14 @@ impl<'a> io::Read for Reader<'a> {
 ///
 /// [`ServerConnection`]: crate::ServerConnection
 /// [`ClientConnection`]: crate::ClientConnection
+#[cfg(feature = "std")]
 pub(crate) trait PlaintextSink {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize>;
     fn write_vectored(&mut self, bufs: &[io::IoSlice<'_>]) -> io::Result<usize>;
     fn flush(&mut self) -> io::Result<()>;
 }
 
+#[cfg(feature = "std")]
 impl<T> PlaintextSink for ConnectionCommon<T> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         Ok(self.send_some_plaintext(buf))
