@@ -21,7 +21,7 @@ use crate::{verify, WantsVersions};
 use super::handy::{ClientSessionMemoryCache, NoClientSessionStorage};
 use super::hs;
 
-use pki_types::ServerName;
+use pki_types::{ServerName, UnixTime};
 
 use alloc::sync::Arc;
 use alloc::vec::Vec;
@@ -202,6 +202,10 @@ pub struct ClientConfig {
     ///
     /// The default is false.
     pub enable_early_data: bool,
+
+    /// Provides the current system time
+    #[cfg(not(feature = "std"))]
+    pub time_provider: crate::time_provider::TimeProvider,
 }
 
 /// What mechanisms to support for resuming a TLS 1.2 session.
@@ -234,6 +238,8 @@ impl Clone for ClientConfig {
             key_log: Arc::clone(&self.key_log),
             enable_secret_extraction: self.enable_secret_extraction,
             enable_early_data: self.enable_early_data,
+            #[cfg(not(feature = "std"))]
+            time_provider: self.time_provider.clone(),
         }
     }
 }
@@ -325,6 +331,19 @@ impl ClientConfig {
             .iter()
             .copied()
             .find(|skxg| skxg.name() == group)
+    }
+
+    pub(super) fn get_current_time(&self) -> Result<UnixTime, Error> {
+        #[cfg(feature = "std")]
+        let now = UnixTime::now();
+
+        #[cfg(not(feature = "std"))]
+        let now = self
+            .time_provider
+            .get_current_time()
+            .ok_or(Error::FailedToGetCurrentTime)?;
+
+        Ok(now)
     }
 }
 

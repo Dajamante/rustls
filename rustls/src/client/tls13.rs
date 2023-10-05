@@ -40,7 +40,7 @@ use crate::client::common::ServerCertDetails;
 use crate::client::common::{ClientAuthDetails, ClientHelloDetails};
 use crate::client::{hs, ClientConfig, ClientSessionStore};
 
-use pki_types::{ServerName, UnixTime};
+use pki_types::ServerName;
 use subtle::ConstantTimeEq;
 
 use alloc::boxed::Box;
@@ -665,6 +665,9 @@ impl State<ClientConnectionData> for ExpectCertificateVerify {
             .cert_chain
             .split_first()
             .ok_or(Error::NoCertificatesPresented)?;
+
+        let now = self.config.get_current_time()?;
+
         let cert_verified = self
             .config
             .verifier
@@ -673,7 +676,7 @@ impl State<ClientConnectionData> for ExpectCertificateVerify {
                 intermediates,
                 &self.server_name,
                 &self.server_cert.ocsp_response,
-                UnixTime::now(),
+                now,
             )
             .map_err(|err| {
                 cx.common
@@ -898,6 +901,7 @@ impl State<ClientConnectionData> for ExpectFinished {
         cx.common.start_traffic();
 
         let st = ExpectTraffic {
+            config: Arc::clone(&st.config),
             session_storage: Arc::clone(&st.config.resumption.store),
             server_name: st.server_name,
             suite: st.suite,
@@ -919,6 +923,7 @@ impl State<ClientConnectionData> for ExpectFinished {
 // In this state we can be sent tickets, key updates,
 // and application data.
 struct ExpectTraffic {
+    config: Arc<ClientConfig>,
     session_storage: Arc<dyn ClientSessionStore>,
     server_name: ServerName<'static>,
     suite: &'static Tls13CipherSuite,
@@ -947,6 +952,8 @@ impl ExpectTraffic {
             .key_schedule
             .resumption_master_secret_and_derive_ticket_psk(&handshake_hash, &nst.nonce.0);
 
+        let now = self.config.get_current_time()?;
+
         #[allow(unused_mut)]
         let mut value = persist::Tls13ClientSessionValue::new(
             self.suite,
@@ -956,7 +963,7 @@ impl ExpectTraffic {
                 .peer_certificates
                 .clone()
                 .unwrap_or_default(),
-            UnixTime::now(),
+            now,
             nst.lifetime,
             nst.age_add,
             nst.get_max_early_data_size()

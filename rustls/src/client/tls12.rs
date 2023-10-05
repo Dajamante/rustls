@@ -27,7 +27,7 @@ use crate::client::common::ClientAuthDetails;
 use crate::client::common::ServerCertDetails;
 use crate::client::{hs, ClientConfig};
 
-use pki_types::{ServerName, UnixTime};
+use pki_types::ServerName;
 use subtle::ConstantTimeEq;
 
 use alloc::borrow::ToOwned;
@@ -706,6 +706,9 @@ impl State<ClientConnectionData> for ExpectServerDone {
             .cert_chain
             .split_first()
             .ok_or(Error::NoCertificatesPresented)?;
+
+        let now = st.config.get_current_time()?;
+
         let cert_verified = st
             .config
             .verifier
@@ -714,7 +717,7 @@ impl State<ClientConnectionData> for ExpectServerDone {
                 intermediates,
                 &st.server_name,
                 &st.server_cert.ocsp_response,
-                UnixTime::now(),
+                now,
             )
             .map_err(|err| {
                 cx.common
@@ -974,6 +977,12 @@ impl ExpectFinished {
             return;
         }
 
+        let now = if let Ok(now) = self.config.get_current_time() {
+            now
+        } else {
+            return;
+        };
+
         let session_value = persist::Tls12ClientSessionValue::new(
             self.secrets.suite(),
             self.session_id,
@@ -983,7 +992,7 @@ impl ExpectFinished {
                 .peer_certificates
                 .clone()
                 .unwrap_or_default(),
-            UnixTime::now(),
+            now,
             lifetime,
             self.using_ems,
         );
