@@ -268,10 +268,12 @@ impl<T> PlaintextSink for ConnectionCommon<T> {
 }
 
 /// A structure that implements [`std::io::Write`] for writing plaintext.
+#[cfg(feature = "std")]
 pub struct Writer<'a> {
     sink: &'a mut dyn PlaintextSink,
 }
 
+#[cfg(feature = "std")]
 impl<'a> Writer<'a> {
     /// Create a new Writer.
     ///
@@ -282,6 +284,7 @@ impl<'a> Writer<'a> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<'a> io::Write for Writer<'a> {
     /// Send the plaintext `buf` to the peer, encrypting
     /// and authenticating it.  Once this function succeeds
@@ -356,6 +359,7 @@ impl<Data> ConnectionCommon<Data> {
     }
 
     /// Returns an object that allows writing plaintext.
+    #[cfg(feature = "std")]
     pub fn writer(&mut self) -> Writer {
         Writer::new(self)
     }
