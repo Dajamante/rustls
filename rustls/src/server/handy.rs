@@ -1,5 +1,6 @@
 #[cfg(feature = "std")]
 use crate::error::Error;
+#[cfg(feature = "std")]
 use crate::limited_cache;
 use crate::msgs::handshake::CertificateChain;
 use crate::server;
@@ -15,9 +16,12 @@ use pki_types::{DnsName, ServerName};
 use alloc::string::{String, ToString};
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use core::fmt::{Debug, Formatter};
+use core::fmt::Debug;
+#[cfg(feature = "std")]
+use core::fmt::Formatter;
 #[cfg(feature = "std")]
 use std::collections::HashMap;
+#[cfg(feature = "std")]
 use std::sync::Mutex;
 
 /// Something which never stores sessions.
@@ -42,10 +46,12 @@ impl server::StoresServerSessions for NoServerSessionStorage {
 /// An implementer of `StoresServerSessions` that stores everything
 /// in memory.  If enforces a limit on the number of stored sessions
 /// to bound memory usage.
+#[cfg(feature = "std")]
 pub struct ServerSessionMemoryCache {
     cache: Mutex<limited_cache::LimitedCache<Vec<u8>, Vec<u8>>>,
 }
 
+#[cfg(feature = "std")]
 impl ServerSessionMemoryCache {
     /// Make a new ServerSessionMemoryCache.  `size` is the maximum
     /// number of stored sessions, and may be rounded-up for
@@ -57,6 +63,7 @@ impl ServerSessionMemoryCache {
     }
 }
 
+#[cfg(feature = "std")]
 impl server::StoresServerSessions for ServerSessionMemoryCache {
     fn put(&self, key: Vec<u8>, value: Vec<u8>) -> bool {
         self.cache
@@ -83,6 +90,7 @@ impl server::StoresServerSessions for ServerSessionMemoryCache {
     }
 }
 
+#[cfg(feature = "std")]
 impl Debug for ServerSessionMemoryCache {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("ServerSessionMemoryCache")
@@ -240,12 +248,14 @@ mod tests {
         assert_eq!(c.take(&[0x02]), None);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_serversessionmemorycache_accepts_put() {
         let c = ServerSessionMemoryCache::new(4);
         assert!(c.put(vec![0x01], vec![0x02]));
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_serversessionmemorycache_persists_put() {
         let c = ServerSessionMemoryCache::new(4);
@@ -254,6 +264,7 @@ mod tests {
         assert_eq!(c.get(&[0x01]), Some(vec![0x02]));
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_serversessionmemorycache_overwrites_put() {
         let c = ServerSessionMemoryCache::new(4);
@@ -262,6 +273,7 @@ mod tests {
         assert_eq!(c.get(&[0x01]), Some(vec![0x04]));
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_serversessionmemorycache_drops_to_maintain_size_invariant() {
         let c = ServerSessionMemoryCache::new(2);
