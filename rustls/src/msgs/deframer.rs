@@ -1,6 +1,7 @@
 use alloc::vec::Vec;
 use core::ops::Range;
 use core::slice::SliceIndex;
+#[cfg(feature = "std")]
 use std::io;
 
 use super::base::Payload;
@@ -297,6 +298,7 @@ impl MessageDeframer {
 
     /// Read some bytes from `rd`, and add them to our internal buffer.
     #[allow(clippy::comparison_chain)]
+    #[cfg(feature = "std")]
     pub fn read(
         &mut self,
         rd: &mut dyn io::Read,
@@ -343,6 +345,7 @@ impl DeframerVecBuffer {
     }
 
     /// Resize the internal `buf` if necessary for reading more bytes.
+    #[cfg(feature = "std")]
     fn prepare_read(&mut self, is_joining_hs: bool) -> Result<(), &'static str> {
         // We allow a maximum of 64k of buffered data for handshake messages only. Enforce this
         // by varying the maximum allowed buffer size here based on whether a prefix of a
@@ -405,15 +408,18 @@ impl DeframerVecBuffer {
         self.len() == 0
     }
 
+    #[cfg(feature = "std")]
     fn advance(&mut self, num_bytes: usize) {
         self.used += num_bytes;
     }
 
+    #[cfg(feature = "std")]
     fn unfilled(&mut self) -> &mut [u8] {
         &mut self.buf[self.used..]
     }
 }
 
+#[cfg(feature = "std")]
 impl FilledDeframerBuffer for DeframerVecBuffer {
     fn filled_mut(&mut self) -> &mut [u8] {
         &mut self.buf[..self.used]
@@ -424,6 +430,7 @@ impl FilledDeframerBuffer for DeframerVecBuffer {
     }
 }
 
+#[cfg(feature = "std")]
 impl DeframerBuffer<true> for DeframerVecBuffer {
     fn copy(&mut self, src: &[u8], at: usize) {
         copy_into_buffer(self.unfilled(), src, at);
@@ -431,6 +438,7 @@ impl DeframerBuffer<true> for DeframerVecBuffer {
     }
 }
 
+#[cfg(feature = "std")]
 impl DeframerBuffer<false> for DeframerVecBuffer {
     fn copy(&mut self, src: &[u8], at: usize) {
         self.borrow(&mut 0).copy(src, at)
@@ -574,8 +582,10 @@ const HEADER_SIZE: usize = 1 + 3;
 /// service.
 const MAX_HANDSHAKE_SIZE: u32 = 0xffff;
 
+#[cfg(feature = "std")]
 const READ_SIZE: usize = 4096;
 
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
     use std::io;
