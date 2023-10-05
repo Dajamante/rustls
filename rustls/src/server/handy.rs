@@ -1,17 +1,22 @@
+#[cfg(feature = "std")]
 use crate::error::Error;
 use crate::limited_cache;
 use crate::msgs::handshake::CertificateChain;
 use crate::server;
 use crate::server::ClientHello;
 use crate::sign;
+#[cfg(feature = "std")]
 use crate::webpki::{verify_server_name, ParsedCertificate};
 
+#[cfg(feature = "std")]
 use pki_types::{DnsName, ServerName};
 
+#[cfg(feature = "std")]
 use alloc::string::{String, ToString};
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter};
+#[cfg(feature = "std")]
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -143,11 +148,13 @@ impl server::ResolvesServerCert for AlwaysResolvesChain {
 
 /// Something that resolves do different cert chains/keys based
 /// on client-supplied server name (via SNI).
+#[cfg(feature = "std")]
 #[derive(Debug)]
 pub struct ResolvesServerCertUsingSni {
     by_name: HashMap<String, Arc<sign::CertifiedKey>>,
 }
 
+#[cfg(feature = "std")]
 impl ResolvesServerCertUsingSni {
     /// Create a new and empty (i.e., knows no certificates) resolver.
     pub fn new() -> Self {
@@ -190,6 +197,7 @@ impl ResolvesServerCertUsingSni {
     }
 }
 
+#[cfg(feature = "std")]
 impl server::ResolvesServerCert for ResolvesServerCertUsingSni {
     fn resolve(&self, client_hello: ClientHello) -> Option<Arc<sign::CertifiedKey>> {
         if let Some(name) = client_hello.server_name() {
@@ -205,6 +213,7 @@ impl server::ResolvesServerCert for ResolvesServerCertUsingSni {
 mod tests {
     use super::*;
     use crate::server::ProducesTickets;
+    #[cfg(feature = "std")]
     use crate::server::ResolvesServerCert;
     use crate::server::StoresServerSessions;
 
@@ -280,6 +289,7 @@ mod tests {
         assert_eq!(None, npt.decrypt(&[]));
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_resolvesservercertusingsni_requires_sni() {
         let rscsni = ResolvesServerCertUsingSni::new();
@@ -288,6 +298,7 @@ mod tests {
             .is_none());
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_resolvesservercertusingsni_handles_unknown_name() {
         let rscsni = ResolvesServerCertUsingSni::new();
