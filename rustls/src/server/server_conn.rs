@@ -9,6 +9,7 @@ use crate::log::trace;
 use crate::msgs::base::Payload;
 use crate::msgs::handshake::{ClientHelloPayload, ProtocolName, ServerExtension};
 use crate::msgs::message::Message;
+#[cfg(feature = "std")]
 use crate::suites::ExtractedSecrets;
 use crate::vecbuf::ChunkVecBuffer;
 use crate::verify;
@@ -431,16 +432,19 @@ impl ServerConfig {
 /// "Early data" is also known as "0-RTT data".
 ///
 /// This structure implements [`std::io::Read`].
+#[cfg(feature = "std")]
 pub struct ReadEarlyData<'a> {
     early_data: &'a mut EarlyDataState,
 }
 
+#[cfg(feature = "std")]
 impl<'a> ReadEarlyData<'a> {
     fn new(early_data: &'a mut EarlyDataState) -> Self {
         ReadEarlyData { early_data }
     }
 }
 
+#[cfg(feature = "std")]
 impl<'a> std::io::Read for ReadEarlyData<'a> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.early_data.read(buf)
@@ -456,10 +460,12 @@ impl<'a> std::io::Read for ReadEarlyData<'a> {
 ///
 /// Send TLS-protected data to the peer using the `io::Write` trait implementation.
 /// Read data from the peer using the `io::Read` trait implementation.
+#[cfg(feature = "std")]
 pub struct ServerConnection {
     inner: ConnectionCommon<ServerConnectionData>,
 }
 
+#[cfg(feature = "std")]
 impl ServerConnection {
     /// Make a new ServerConnection.  `config` controls how
     /// we behave in the TLS protocol.
@@ -553,6 +559,7 @@ impl ServerConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl Debug for ServerConnection {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.debug_struct("ServerConnection")
@@ -560,6 +567,7 @@ impl Debug for ServerConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl Deref for ServerConnection {
     type Target = ConnectionCommon<ServerConnectionData>;
 
@@ -568,6 +576,7 @@ impl Deref for ServerConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl DerefMut for ServerConnection {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
@@ -769,6 +778,7 @@ impl Accepted {
     /// Takes the state returned from [`Acceptor::accept()`] as well as the [`ServerConfig`] and
     /// [`sign::CertifiedKey`] that should be used for the session. Returns an error if
     /// configuration-dependent validation of the received `ClientHello` message fails.
+    #[cfg(feature = "std")]
     pub fn into_connection(mut self, config: Arc<ServerConfig>) -> Result<ServerConnection, Error> {
         self.connection
             .set_max_fragment_size(config.max_fragment_size)?;
@@ -836,6 +846,7 @@ impl EarlyDataState {
         *self = Self::Accepted(ChunkVecBuffer::new(Some(max_size)));
     }
 
+    #[cfg(feature = "std")]
     fn was_accepted(&self) -> bool {
         matches!(self, Self::Accepted(_))
     }
@@ -851,6 +862,7 @@ impl EarlyDataState {
         }
     }
 
+    #[cfg(feature = "std")]
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         match self {
             Self::Accepted(ref mut received) => received.read(buf),
@@ -933,6 +945,7 @@ impl ServerConnectionData {
 
 impl crate::conn::SideData for ServerConnectionData {}
 
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
     use super::*;

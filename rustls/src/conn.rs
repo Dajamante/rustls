@@ -473,6 +473,7 @@ impl<Data> ConnectionCommon<Data> {
         }
     }
 
+    #[cfg(feature = "std")]
     pub(crate) fn replace_state(&mut self, new: Box<dyn State<Data>>) {
         self.core.state = Ok(new);
     }
