@@ -14,6 +14,7 @@ use alloc::boxed::Box;
 use core::fmt::Debug;
 use core::mem;
 use core::ops::{Deref, DerefMut};
+#[cfg(feature = "std")]
 use std::io;
 
 pub(crate) mod unbuffered;
@@ -395,6 +396,7 @@ impl<Data> ConnectionCommon<Data> {
     /// [`write_tls`]: ConnectionCommon::write_tls
     /// [`read_tls`]: ConnectionCommon::read_tls
     /// [`process_new_packets`]: ConnectionCommon::process_new_packets
+    #[cfg(feature = "std")]
     pub fn complete_io<T>(&mut self, io: &mut T) -> Result<(usize, usize), io::Error>
     where
         Self: Sized,
@@ -532,6 +534,7 @@ impl<Data> ConnectionCommon<Data> {
     ///
     /// [`process_new_packets()`]: ConnectionCommon::process_new_packets
     /// [`reader()`]: ConnectionCommon::reader
+    #[cfg(feature = "std")]
     pub fn read_tls(&mut self, rd: &mut dyn io::Read) -> Result<usize, io::Error> {
         if self.received_plaintext.is_full() {
             return Err(io::Error::new(
@@ -557,6 +560,7 @@ impl<Data> ConnectionCommon<Data> {
     ///
     /// After this function returns, the connection buffer may not yet be fully flushed. The
     /// [`CommonState::wants_write`] function can be used to check if the output buffer is empty.
+    #[cfg(feature = "std")]
     pub fn write_tls(&mut self, wr: &mut dyn io::Write) -> Result<usize, io::Error> {
         self.sendable_tls.write_to(wr)
     }

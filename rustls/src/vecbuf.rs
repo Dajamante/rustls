@@ -1,6 +1,7 @@
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 use core::cmp;
+#[cfg(feature = "std")]
 use std::io;
 #[cfg(feature = "std")]
 use std::io::Read;
@@ -38,6 +39,7 @@ impl ChunkVecBuffer {
         self.chunks.is_empty()
     }
 
+    #[cfg(feature = "std")]
     pub(crate) fn is_full(&self) -> bool {
         self.limit
             .map(|limit| self.len() > limit)
@@ -122,6 +124,7 @@ impl ChunkVecBuffer {
         Ok(())
     }
 
+    #[cfg(feature = "std")]
     fn consume(&mut self, mut used: usize) {
         while let Some(mut buf) = self.chunks.pop_front() {
             if used < buf.len() {
@@ -135,6 +138,7 @@ impl ChunkVecBuffer {
     }
 
     /// Read data out of this object, passing it `wr`
+    #[cfg(feature = "std")]
     pub(crate) fn write_to(&mut self, wr: &mut dyn io::Write) -> io::Result<usize> {
         if self.is_empty() {
             return Ok(0);
