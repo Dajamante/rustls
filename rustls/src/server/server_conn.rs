@@ -21,7 +21,7 @@ use crate::{sign, WantsVersions};
 
 use super::hs;
 
-use pki_types::DnsName;
+use pki_types::{DnsName, UnixTime};
 
 use alloc::boxed::Box;
 use alloc::sync::Arc;
@@ -315,6 +315,10 @@ pub struct ServerConfig {
     /// If this is 0, no tickets are sent and clients will not be able to
     /// do any resumption.
     pub send_tls13_tickets: usize,
+
+    /// Provides the current system time
+    #[cfg(not(feature = "std"))]
+    pub time_provider: crate::time_provider::TimeProvider,
 }
 
 // Avoid a `Clone` bound on `C`.
@@ -335,6 +339,8 @@ impl Clone for ServerConfig {
             max_early_data_size: self.max_early_data_size,
             send_half_rtt_data: self.send_half_rtt_data,
             send_tls13_tickets: self.send_tls13_tickets,
+            #[cfg(not(feature = "std"))]
+            time_provider: self.time_provider.clone(),
         }
     }
 }
@@ -404,6 +410,19 @@ impl ServerConfig {
             .cipher_suites
             .iter()
             .any(|cs| cs.usable_for_protocol(proto))
+    }
+
+    pub(super) fn get_current_time(&self) -> Result<UnixTime, Error> {
+        #[cfg(feature = "std")]
+        let now = UnixTime::now();
+
+        #[cfg(not(feature = "std"))]
+        let now = self
+            .time_provider
+            .get_current_time()
+            .ok_or(Error::FailedToGetCurrentTime)?;
+
+        Ok(now)
     }
 }
 
