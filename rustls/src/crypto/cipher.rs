@@ -1,6 +1,7 @@
 use alloc::boxed::Box;
 use alloc::string::ToString;
 use core::fmt;
+#[cfg(feature = "std")]
 use std::error::Error as StdError;
 
 use crate::enums::{ContentType, ProtocolVersion};
@@ -90,6 +91,7 @@ impl fmt::Display for UnsupportedOperationError {
     }
 }
 
+#[cfg(feature = "std")]
 impl StdError for UnsupportedOperationError {}
 
 /// How a TLS1.2 `key_block` is partitioned.

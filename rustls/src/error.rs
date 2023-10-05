@@ -8,6 +8,7 @@ use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::fmt;
+#[cfg(feature = "std")]
 use std::error::Error as StdError;
 use std::time::SystemTimeError;
 
@@ -539,6 +540,7 @@ impl From<SystemTimeError> for Error {
     }
 }
 
+#[cfg(feature = "std")]
 impl StdError for Error {}
 
 impl From<rand::GetRandomFailed> for Error {
