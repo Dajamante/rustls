@@ -7,6 +7,7 @@ use crate::msgs::deframer::{Deframed, DeframerSliceBuffer, DeframerVecBuffer, Me
 use crate::msgs::handshake::Random;
 use crate::msgs::message::{Message, MessagePayload, PlainMessage};
 use crate::suites::{ExtractedSecrets, PartiallyExtractedSecrets};
+#[cfg(feature = "std")]
 use crate::vecbuf::ChunkVecBuffer;
 
 use alloc::boxed::Box;
@@ -134,12 +135,14 @@ impl DerefMut for Connection {
 }
 
 /// A structure that implements [`std::io::Read`] for reading plaintext.
+#[cfg(feature = "std")]
 pub struct Reader<'a> {
     received_plaintext: &'a mut ChunkVecBuffer,
     peer_cleanly_closed: bool,
     has_seen_eof: bool,
 }
 
+#[cfg(feature = "std")]
 impl<'a> io::Read for Reader<'a> {
     /// Obtain plaintext data received from the peer over this TLS connection.
     ///
@@ -339,6 +342,7 @@ pub struct ConnectionCommon<Data> {
 
 impl<Data> ConnectionCommon<Data> {
     /// Returns an object that allows reading plaintext.
+    #[cfg(feature = "std")]
     pub fn reader(&mut self) -> Reader {
         let common = &mut self.core.common_state;
         Reader {

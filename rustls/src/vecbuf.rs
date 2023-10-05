@@ -2,6 +2,7 @@ use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 use core::cmp;
 use std::io;
+#[cfg(feature = "std")]
 use std::io::Read;
 
 /// This is a byte buffer that is built from a vector
@@ -91,6 +92,7 @@ impl ChunkVecBuffer {
 
     /// Read data out of this object, writing it into `buf`
     /// and returning how many bytes were written there.
+    #[cfg(feature = "std")]
     pub(crate) fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let mut offs = 0;
 
@@ -148,6 +150,7 @@ impl ChunkVecBuffer {
     }
 }
 
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
     use super::ChunkVecBuffer;

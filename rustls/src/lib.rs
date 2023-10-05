@@ -442,8 +442,8 @@ pub use crate::conn::unbuffered::{
     UnbufferedStatus,
 };
 #[cfg(feature = "std")]
-pub use crate::conn::Connection;
-pub use crate::conn::{ConnectionCommon, Reader, SideData, UnbufferedConnectionCommon, Writer};
+pub use crate::conn::{Connection, Reader};
+pub use crate::conn::{ConnectionCommon, SideData, UnbufferedConnectionCommon, Writer};
 pub use crate::enums::{
     AlertDescription, CipherSuite, ContentType, HandshakeType, ProtocolVersion, SignatureAlgorithm,
     SignatureScheme,
