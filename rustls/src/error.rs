@@ -4,6 +4,7 @@ use crate::rand;
 
 use alloc::format;
 use alloc::string::String;
+#[cfg(feature = "std")]
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::fmt;
@@ -102,7 +103,7 @@ pub enum Error {
     /// provider specific error.
     ///
     /// Enums holding this variant will never compare equal to each other.
-    Other(OtherError),
+    Other(#[cfg(feature = "std")] OtherError),
 }
 
 /// A corrupt TLS message payload that resulted in an error.
@@ -340,7 +341,7 @@ pub enum CertificateError {
     /// not covered by the above common cases.
     ///
     /// Enums holding this variant will never compare equal to each other.
-    Other(OtherError),
+    Other(#[cfg(feature = "std")] OtherError),
 }
 
 impl PartialEq<Self> for CertificateError {
@@ -386,7 +387,7 @@ impl From<CertificateError> for AlertDescription {
             // certificate_unknown
             //  Some other (unspecified) issue arose in processing the
             //  certificate, rendering it unacceptable.
-            Other(_) => Self::CertificateUnknown,
+            Other(..) => Self::CertificateUnknown,
         }
     }
 }
@@ -417,7 +418,7 @@ pub enum CertRevocationListError {
     /// The CRL is invalid for some other reason.
     ///
     /// Enums holding this variant will never compare equal to each other.
-    Other(OtherError),
+    Other(#[cfg(feature = "std")] OtherError),
 
     /// The CRL is not correctly encoded.
     ParseError,
@@ -523,7 +524,10 @@ impl fmt::Display for Error {
                 write!(f, "the supplied max_fragment_size was too small or large")
             }
             Self::General(ref err) => write!(f, "unexpected error: {}", err),
+            #[cfg(feature = "std")]
             Self::Other(ref err) => write!(f, "other error: {}", err),
+            #[cfg(not(feature = "std"))]
+            Self::Other(..) => f.write_str("write error"),
         }
     }
 }
@@ -549,15 +553,18 @@ impl From<rand::GetRandomFailed> for Error {
 /// exposing a provider specific error.
 ///
 /// Enums holding this type will never compare equal to each other.
+#[cfg(feature = "std")]
 #[derive(Debug, Clone)]
 pub struct OtherError(pub Arc<dyn StdError + Send + Sync>);
 
+#[cfg(feature = "std")]
 impl PartialEq<Self> for OtherError {
     fn eq(&self, _other: &Self) -> bool {
         false
     }
 }
 
+#[cfg(feature = "std")]
 impl From<OtherError> for Error {
     fn from(value: OtherError) -> Self {
         Self::Other(value)
@@ -579,7 +586,9 @@ impl StdError for OtherError {
 #[cfg(test)]
 mod tests {
     use super::{Error, InvalidMessage};
-    use crate::error::{CertRevocationListError, OtherError};
+    use crate::error::CertRevocationListError;
+    #[cfg(feature = "std")]
+    use crate::error::OtherError;
 
     #[test]
     fn certificate_error_equality() {
@@ -597,7 +606,10 @@ mod tests {
             ApplicationVerificationFailure,
             ApplicationVerificationFailure
         );
-        let other = Other(OtherError(alloc::sync::Arc::from(Box::from(""))));
+        let other = Other(OtherError(
+            #[cfg(feature = "std")]
+            alloc::sync::Arc::from(Box::from("")),
+        ));
         assert_ne!(other, other);
         assert_ne!(BadEncoding, Expired);
     }
@@ -618,12 +630,16 @@ mod tests {
         assert_eq!(UnsupportedDeltaCrl, UnsupportedDeltaCrl);
         assert_eq!(UnsupportedIndirectCrl, UnsupportedIndirectCrl);
         assert_eq!(UnsupportedRevocationReason, UnsupportedRevocationReason);
-        let other = Other(OtherError(alloc::sync::Arc::from(Box::from(""))));
+        let other = Other(OtherError(
+            #[cfg(feature = "std")]
+            alloc::sync::Arc::from(Box::from("")),
+        ));
         assert_ne!(other, other);
         assert_ne!(BadSignature, InvalidCrlNumber);
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn other_error_equality() {
         let other_error = OtherError(alloc::sync::Arc::from(Box::from("")));
         assert_ne!(other_error, other_error);
@@ -659,7 +675,10 @@ mod tests {
             Error::NoApplicationProtocol,
             Error::BadMaxFragmentSize,
             Error::InvalidCertRevocationList(CertRevocationListError::BadSignature),
-            Error::Other(OtherError(alloc::sync::Arc::from(Box::from("")))),
+            Error::Other(
+                #[cfg(feature = "std")]
+                OtherError(alloc::sync::Arc::from(Box::from(""))),
+            ),
         ];
 
         for err in all {

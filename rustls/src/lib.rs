@@ -439,8 +439,10 @@ pub use crate::enums::{
     AlertDescription, CipherSuite, ContentType, HandshakeType, ProtocolVersion, SignatureAlgorithm,
     SignatureScheme,
 };
+#[cfg(feature = "std")]
+pub use crate::error::OtherError;
 pub use crate::error::{
-    CertRevocationListError, CertificateError, Error, InvalidMessage, OtherError, PeerIncompatible,
+    CertRevocationListError, CertificateError, Error, InvalidMessage, PeerIncompatible,
     PeerMisbehaved,
 };
 pub use crate::key_log::{KeyLog, NoKeyLog};
