@@ -29,7 +29,7 @@ default = ["logging", "ring", "tls12", "std"]
 std = ["webpki/std", "pki-types/std"]
 logging = ["log"]
 aws_lc_rs = ["dep:aws-lc-rs", "webpki/aws_lc_rs", "std"]
-ring = ["dep:ring", "webpki/ring", "std"]
+ring = ["dep:ring", "webpki/ring"]
 tls12 = []
 read_buf = ["rustversion", "std"]
 
