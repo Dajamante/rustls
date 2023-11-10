@@ -331,10 +331,7 @@ impl DeframerVecBuffer {
     /// Borrows the initialized contents of this buffer and tracks pending discard operations via
     /// the `discard` reference
     pub fn borrow<'b, 'd>(&'b mut self, discard: &'d mut usize) -> DeframerSliceBuffer<'b, 'd> {
-        DeframerSliceBuffer {
-            buf: &mut self.buf[..self.used],
-            discard,
-        }
+        DeframerSliceBuffer::new(&mut self.buf[..self.used], discard)
     }
 
     /// Returns true if we have messages for the caller
@@ -415,7 +412,11 @@ pub struct DeframerSliceBuffer<'b, 'd> {
     discard: &'d mut usize,
 }
 
-impl DeframerSliceBuffer<'_, '_> {
+impl<'b, 'd> DeframerSliceBuffer<'b, 'd> {
+    pub fn new(buf: &'b mut [u8], discard: &'d mut usize) -> Self {
+        Self { buf, discard }
+    }
+
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
