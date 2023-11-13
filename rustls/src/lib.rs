@@ -475,7 +475,7 @@ pub mod client {
     pub use crate::dns_name::InvalidDnsNameError;
     pub use builder::WantsClientCert;
     pub use client_conn::{
-        ClientConfig, ClientConnection, ClientConnectionData, ClientSessionStore,
+        ClientConfig, ClientConnection, ClientConnectionData, ClientSessionStore, EarlyDataError,
         ResolvesClientCert, Resumption, ServerName, Tls12Resumption, UnbufferedClientConnection,
         WriteEarlyData,
     };

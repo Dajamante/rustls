@@ -4,7 +4,7 @@ use std::io::{BufReader, Read, Write};
 use std::net::TcpStream;
 use std::sync::Arc;
 
-use rustls::client::{ClientConnectionData, UnbufferedClientConnection};
+use rustls::client::{ClientConnectionData, EarlyDataError, UnbufferedClientConnection};
 use rustls::unbuffered::{
     AppDataRecord, ConnectionState, EncodeError, EncryptError, InsufficientSizeError,
     MayEncryptAppData, UnbufferedStatus,
@@ -28,9 +28,11 @@ const INCOMING_TLS_BUFSIZ: usize = 16 * KB;
 const OUTGOING_TLS_INITIAL_BUFSIZ: usize = KB;
 
 const MAX_ITERATIONS: usize = 20;
+const SEND_EARLY_DATA: bool = false;
+const EARLY_DATA: &[u8] = b"hello";
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let config = ClientConfig::builder()
+    let mut config = ClientConfig::builder()
         .with_safe_default_cipher_suites()
         .with_safe_default_kx_groups()
         // .with_protocol_versions(&[&TLS12])
@@ -38,6 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .unwrap()
         .with_root_certificates(build_root_store()?)
         .with_no_client_auth();
+    config.enable_early_data = SEND_EARLY_DATA;
 
     let config = Arc::new(config);
 
@@ -45,6 +48,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut outgoing_tls = vec![0; OUTGOING_TLS_INITIAL_BUFSIZ];
 
     converse(&config, false, &mut incoming_tls, &mut outgoing_tls)?;
+    if SEND_EARLY_DATA {
+        eprintln!("---- second connection ----");
+        converse(&config, true, &mut incoming_tls, &mut outgoing_tls)?;
+    }
 
     Ok(())
 }
@@ -64,7 +71,7 @@ fn converse(
     let mut open_connection = true;
     let mut sent_request = false;
     let mut received_response = false;
-    let sent_early_data = false;
+    let mut sent_early_data = false;
 
     let mut iter_count = 0;
     while open_connection {
@@ -112,6 +119,25 @@ fn converse(
             }
 
             ConnectionState::MustTransmitTlsData(mut state) => {
+                if let Some(mut may_encrypt_early_data) = state.may_encrypt_early_data() {
+                    let written = try_or_resize_and_retry(
+                        |out_buffer| may_encrypt_early_data.encrypt(EARLY_DATA, out_buffer),
+                        |e| {
+                            if let EarlyDataError::Encrypt(EncryptError::InsufficientSize(is)) = &e
+                            {
+                                Ok(*is)
+                            } else {
+                                Err(e.into())
+                            }
+                        },
+                        outgoing_tls,
+                        &mut outgoing_used,
+                    )?;
+
+                    eprintln!("queued {written}B of early data");
+                    sent_early_data = true;
+                }
+
                 if let Some(mut may_encrypt) = state.may_encrypt_app_data() {
                     make_http_request(
                         &mut sent_request,
