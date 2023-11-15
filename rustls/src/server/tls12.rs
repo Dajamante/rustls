@@ -907,7 +907,8 @@ impl State<ServerConnectionData> for ExpectFinished {
             emit_finished(&self.secrets, &mut self.transcript, cx.common);
         }
 
-        cx.common.start_traffic();
+        cx.common
+            .start_traffic(cx.sendable_plaintext.as_deref_mut());
         Ok(Box::new(ExpectTraffic {
             secrets: self.secrets,
             _fin_verified,

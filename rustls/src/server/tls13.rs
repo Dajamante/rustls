@@ -440,7 +440,8 @@ mod client_hello {
                 // Application data can be sent immediately after Finished, in one
                 // flight.  However, if client auth is enabled, we don't want to send
                 // application data to an unauthenticated peer.
-                cx.common.start_outgoing_traffic();
+                cx.common
+                    .start_outgoing_traffic(cx.sendable_plaintext.as_deref_mut());
             }
 
             if doing_client_auth {
@@ -1184,7 +1185,8 @@ impl State<ServerConnectionData> for ExpectFinished {
         }
 
         // Application data may now flow, even if we have client auth enabled.
-        cx.common.start_traffic();
+        cx.common
+            .start_traffic(cx.sendable_plaintext.as_deref_mut());
 
         Ok(match cx.common.is_quic() {
             true => Box::new(ExpectQuicTraffic {
