@@ -389,7 +389,7 @@ pub mod internal {
             pub use crate::msgs::codec::{Codec, Reader};
         }
         pub mod deframer {
-            pub use crate::msgs::deframer::MessageDeframer;
+            pub use crate::msgs::deframer::{DeframerVecBuffer, MessageDeframer};
         }
         pub mod enums {
             pub use crate::msgs::enums::{
