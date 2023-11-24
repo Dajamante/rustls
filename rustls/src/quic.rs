@@ -1,30 +1,47 @@
 /// This module contains optional APIs for implementing QUIC TLS.
+#[cfg(feature = "std")]
 use crate::client::{ClientConfig, ClientConnectionData};
-use crate::common_state::{CommonState, Protocol, Side};
-use crate::conn::{ConnectionCore, SideData};
+use crate::common_state::Side;
+#[cfg(feature = "std")]
+use crate::common_state::{CommonState, Protocol};
+#[cfg(feature = "std")]
+use crate::conn::ConnectionCore;
+#[cfg(feature = "std")]
+use crate::conn::SideData;
 use crate::crypto::cipher::{AeadKey, Iv};
 use crate::crypto::tls13::{Hkdf, HkdfExpander, OkmBlock};
-use crate::enums::{AlertDescription, ProtocolVersion};
+use crate::enums::AlertDescription;
+#[cfg(feature = "std")]
+use crate::enums::ProtocolVersion;
 use crate::error::Error;
+#[cfg(feature = "std")]
 use crate::msgs::deframer::DeframerVecBuffer;
+#[cfg(feature = "std")]
 use crate::msgs::handshake::{ClientExtension, ServerExtension};
+#[cfg(feature = "std")]
 use crate::server::{ServerConfig, ServerConnectionData};
 use crate::tls13::key_schedule::{
     hkdf_expand_label, hkdf_expand_label_aead_key, hkdf_expand_label_block,
 };
 use crate::tls13::Tls13CipherSuite;
 
+#[cfg(feature = "std")]
 use pki_types::ServerName;
 
 use alloc::boxed::Box;
 use alloc::collections::VecDeque;
+#[cfg(feature = "std")]
 use alloc::sync::Arc;
+#[cfg(feature = "std")]
 use alloc::vec;
 use alloc::vec::Vec;
+#[cfg(feature = "std")]
 use core::fmt::{self, Debug};
+#[cfg(feature = "std")]
 use core::ops::{Deref, DerefMut};
 
 /// A QUIC client or server connection.
+#[cfg(feature = "std")]
 #[derive(Debug)]
 pub enum Connection {
     /// A client connection
@@ -33,6 +50,7 @@ pub enum Connection {
     Server(ServerConnection),
 }
 
+#[cfg(feature = "std")]
 impl Connection {
     /// Return the TLS-encoded transport parameters for the session's peer.
     ///
@@ -115,6 +133,7 @@ impl Connection {
     }
 }
 
+#[cfg(feature = "std")]
 impl Deref for Connection {
     type Target = CommonState;
 
@@ -126,6 +145,7 @@ impl Deref for Connection {
     }
 }
 
+#[cfg(feature = "std")]
 impl DerefMut for Connection {
     fn deref_mut(&mut self) -> &mut Self::Target {
         match self {
@@ -136,10 +156,12 @@ impl DerefMut for Connection {
 }
 
 /// A QUIC client connection.
+#[cfg(feature = "std")]
 pub struct ClientConnection {
     inner: ConnectionCommon<ClientConnectionData>,
 }
 
+#[cfg(feature = "std")]
 impl ClientConnection {
     /// Make a new QUIC ClientConnection.
     ///
@@ -185,6 +207,7 @@ impl ClientConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl Deref for ClientConnection {
     type Target = ConnectionCommon<ClientConnectionData>;
 
@@ -193,12 +216,14 @@ impl Deref for ClientConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl DerefMut for ClientConnection {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }
 }
 
+#[cfg(feature = "std")]
 impl Debug for ClientConnection {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("quic::ClientConnection")
@@ -206,6 +231,7 @@ impl Debug for ClientConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl From<ClientConnection> for Connection {
     fn from(c: ClientConnection) -> Self {
         Self::Client(c)
@@ -213,10 +239,12 @@ impl From<ClientConnection> for Connection {
 }
 
 /// A QUIC server connection.
+#[cfg(feature = "std")]
 pub struct ServerConnection {
     inner: ConnectionCommon<ServerConnectionData>,
 }
 
+#[cfg(feature = "std")]
 impl ServerConnection {
     /// Make a new QUIC ServerConnection.
     ///
@@ -285,6 +313,7 @@ impl ServerConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl Deref for ServerConnection {
     type Target = ConnectionCommon<ServerConnectionData>;
 
@@ -293,12 +322,14 @@ impl Deref for ServerConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl DerefMut for ServerConnection {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }
 }
 
+#[cfg(feature = "std")]
 impl Debug for ServerConnection {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("quic::ServerConnection")
@@ -306,6 +337,7 @@ impl Debug for ServerConnection {
     }
 }
 
+#[cfg(feature = "std")]
 impl From<ServerConnection> for Connection {
     fn from(c: ServerConnection) -> Self {
         Self::Server(c)
@@ -313,11 +345,13 @@ impl From<ServerConnection> for Connection {
 }
 
 /// A shared interface for QUIC connections.
+#[cfg(feature = "std")]
 pub struct ConnectionCommon<Data> {
     core: ConnectionCore<Data>,
     deframer_buffer: DeframerVecBuffer,
 }
 
+#[cfg(feature = "std")]
 impl<Data: SideData> ConnectionCommon<Data> {
     /// Return the TLS-encoded transport parameters for the session's peer.
     ///
@@ -386,6 +420,7 @@ impl<Data: SideData> ConnectionCommon<Data> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<Data> Deref for ConnectionCommon<Data> {
     type Target = CommonState;
 
@@ -394,12 +429,14 @@ impl<Data> Deref for ConnectionCommon<Data> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<Data> DerefMut for ConnectionCommon<Data> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.core.common_state
     }
 }
 
+#[cfg(feature = "std")]
 impl<Data> From<ConnectionCore<Data>> for ConnectionCommon<Data> {
     fn from(core: ConnectionCore<Data>) -> Self {
         Self {
@@ -419,10 +456,12 @@ pub(crate) struct Quic {
     pub(crate) hs_secrets: Option<Secrets>,
     pub(crate) traffic_secrets: Option<Secrets>,
     /// Whether keys derived from traffic_secrets have been passed to the QUIC implementation
+    #[cfg(feature = "std")]
     pub(crate) returned_traffic_keys: bool,
     pub(crate) version: Version,
 }
 
+#[cfg(feature = "std")]
 impl Quic {
     pub(crate) fn write_hs(&mut self, buf: &mut Vec<u8>) -> Option<KeyChange> {
         while let Some((_, msg)) = self.hs_queue.pop_front() {
