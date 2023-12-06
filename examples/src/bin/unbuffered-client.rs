@@ -15,7 +15,7 @@ use rustls::{ClientConfig, RootCertStore};
 
 // remote server
 const CERTFILE: Option<&str> = None;
-const SERVER_NAME: &str = "example.com";
+const SERVER_NAME: &str = "www.rust-lang.org";
 const PORT: u16 = 443;
 
 // local server
