@@ -15,7 +15,7 @@ use rustls::{ClientConfig, RootCertStore};
 
 // remote server
 const CERTFILE: Option<&str> = None;
-const SERVER_NAME: &str = "www.rust-lang.org";
+const SERVER_NAME: &str = "example.com";
 const PORT: u16 = 443;
 
 // local server
@@ -32,7 +32,8 @@ const SEND_EARLY_DATA: bool = false;
 const EARLY_DATA: &[u8] = b"hello";
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut config = ClientConfig::builder()
+    let mut config = ClientConfig::builder_with_provider(rustls_examples::PROVIDER)
+    //ClientConfig::builder()
         .with_safe_default_cipher_suites()
         .with_safe_default_kx_groups()
         // .with_protocol_versions(&[&TLS12])
